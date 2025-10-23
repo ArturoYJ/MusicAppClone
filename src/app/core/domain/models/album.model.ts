@@ -1,3 +1,5 @@
+import { Track } from './track.model';
+
 export interface Album {
   id: string;
   name: string;
