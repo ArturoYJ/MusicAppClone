@@ -97,6 +97,7 @@ export class SpotifyAdapter implements MusicRepositoryPort {
 
   getFeaturedPlaylists(): Observable<Album[]> {
     const url = `${environment.spotify.apiUrl}/browse/featured-playlists?limit=10`;
+    console.log('URL solicitada (Featured Playlists):', url); 
     return this.waitForToken().pipe(
       switchMap(token => this.http.get<any>(url, { headers: this.getHeaders(token) })),
       map(response => this.mapSpotifyPlaylistsToAlbums(response.playlists.items)),
@@ -106,6 +107,7 @@ export class SpotifyAdapter implements MusicRepositoryPort {
 
   getNewReleases(): Observable<Album[]> {
     const url = `${environment.spotify.apiUrl}/browse/new-releases?limit=10`;
+    console.log('URL solicitada (New Releases):', url); // <--- AÑADE ESTO
     return this.waitForToken().pipe(
       switchMap(token => this.http.get<any>(url, { headers: this.getHeaders(token) })),
       map(response => this.mapSpotifyAlbumsToAlbums(response.albums.items)),
