@@ -27,11 +27,11 @@ export class SpotifyAdapter implements MusicRepositoryPort {
 
     this.http.post<any>(environment.spotify.authUrl, body, { headers })
       .pipe(
-        tap(response => console.log('Autenticación exitosa, token recibido:', response.access_token)), // Log éxito
-        catchError(err => { // <-- MEJOR MANEJO DE ERROR
+        tap(response => console.log('Autenticación exitosa, token recibido:', response.access_token)), 
+        catchError(err => { 
           console.error('¡Error en la autenticación!', err);
-          this.tokenSubject.next(''); // Asegura que el subject tenga un valor vacío en caso de error
-          return of(null); // Retorna un observable nulo para que la cadena no se rompa
+          this.tokenSubject.next(''); 
+          return of(null); 
         })
       )
       .subscribe(response => {
@@ -107,7 +107,7 @@ export class SpotifyAdapter implements MusicRepositoryPort {
 
   getNewReleases(): Observable<Album[]> {
     const url = `${environment.spotify.apiUrl}/browse/new-releases?limit=10`;
-    console.log('URL solicitada (New Releases):', url); // <--- AÑADE ESTO
+    console.log('URL solicitada (New Releases):', url);
     return this.waitForToken().pipe(
       switchMap(token => this.http.get<any>(url, { headers: this.getHeaders(token) })),
       map(response => this.mapSpotifyAlbumsToAlbums(response.albums.items)),
@@ -139,7 +139,7 @@ export class SpotifyAdapter implements MusicRepositoryPort {
   }
 
    private mapSpotifyAlbumToAlbum(item: any): Album {
-    // ... (sin cambios)
+    
     return {
       id: item.id,
       name: item.name,
