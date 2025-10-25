@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of, map, catchError, tap } from 'rxjs';
+import { Observable, of, map, catchError, tap, delay, switchMap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { MusicRepositoryPort } from '../../../core/domain/ports/music-repository.port';
 import { Track, Album, Artist, SearchResult } from '../../../core/domain/models';
@@ -10,18 +10,26 @@ import { Track, Album, Artist, SearchResult } from '../../../core/domain/models'
 })
 export class SpotifyAdapter implements MusicRepositoryPort {
   private token: string = '';
-  private tokenExpiry: number = 0; // Timestamp de cuando expira el token
+  private tokenExpiry: number = 0;
+  private tokenPromise: Promise<string> | null = null; // Para manejar la promesa del token
   
   constructor(private http: HttpClient) {
     console.log('SpotifyAdapter inicializado');
-    this.authenticate();
+    this.initializeToken();
+  }
+
+  /**
+   * Inicializa el token al cargar el servicio
+   */
+  private initializeToken(): void {
+    this.tokenPromise = this.authenticate();
   }
 
   /**
    * Obtiene el token de autenticación de Spotify usando Client Credentials Flow
    * Documentación: https://developer.spotify.com/documentation/web-api/tutorials/client-credentials-flow
    */
-  private authenticate(): void {
+  private authenticate(): Promise<string> {
     const body = 'grant_type=client_credentials';
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -32,20 +40,24 @@ export class SpotifyAdapter implements MusicRepositoryPort {
 
     console.log('Solicitando token a Spotify...');
 
-    this.http.post<any>(environment.spotify.authUrl, body, { headers })
-      .subscribe({
-        next: (response) => {
-          this.token = response.access_token;
-          // El token expira en 3600 segundos (1 hora)
-          this.tokenExpiry = Date.now() + (response.expires_in * 1000);
-          console.log('✓ Token obtenido correctamente');
-          console.log('Expira en:', response.expires_in, 'segundos');
-        },
-        error: (err) => {
-          console.error('✗ Error al obtener token:', err);
-          // TODO: Implementar retry automático aquí
-        }
-      });
+    return new Promise((resolve, reject) => {
+      this.http.post<any>(environment.spotify.authUrl, body, { headers })
+        .subscribe({
+          next: (response) => {
+            this.token = response.access_token;
+            // El token expira en 3600 segundos (1 hora)
+            this.tokenExpiry = Date.now() + (response.expires_in * 1000);
+            console.log('✓ Token obtenido correctamente');
+            console.log('Token:', this.token.substring(0, 20) + '...');
+            console.log('Expira en:', response.expires_in, 'segundos');
+            resolve(this.token);
+          },
+          error: (err) => {
+            console.error('✗ Error al obtener token:', err);
+            reject(err);
+          }
+        });
+    });
   }
 
   /**
@@ -54,24 +66,33 @@ export class SpotifyAdapter implements MusicRepositoryPort {
   private isTokenValid(): boolean {
     const isValid = this.token !== '' && Date.now() < this.tokenExpiry;
     if (!isValid) {
-      console.log('Token expirado o no existe');
+      console.log('Token expirado o no existe, renovando...');
     }
     return isValid;
   }
 
   /**
+   * Obtiene un token válido (espera si es necesario)
+   */
+  private async getValidToken(): Promise<string> {
+    // Si el token es válido, retornarlo
+    if (this.isTokenValid()) {
+      return this.token;
+    }
+
+    // Si no hay token o expiró, obtener uno nuevo
+    console.log('Obteniendo nuevo token...');
+    this.tokenPromise = this.authenticate();
+    return this.tokenPromise;
+  }
+
+  /**
    * Genera los headers necesarios para las peticiones a la API de Spotify
    */
-  private getHeaders(): HttpHeaders {
-    // Verificar si el token expiró
-    if (!this.isTokenValid()) {
-      console.warn('Token expirado, obteniendo uno nuevo...');
-      this.authenticate();
-      // FIXME: Esto puede causar problemas si la petición se hace antes de obtener el nuevo token
-    }
-    
+  private async getHeaders(): Promise<HttpHeaders> {
+    const token = await this.getValidToken();
     return new HttpHeaders({
-      'Authorization': `Bearer ${this.token}`
+      'Authorization': `Bearer ${token}`
     });
   }
 
@@ -83,18 +104,36 @@ export class SpotifyAdapter implements MusicRepositoryPort {
     
     console.log('Buscando tracks en Spotify API:', query);
     
-    return this.http.get<any>(url, { headers: this.getHeaders() })
-      .pipe(
-        map(response => {
-          const tracks = this.mapSpotifyTracksToTracks(response.tracks.items);
-          console.log(`Encontrados ${tracks.length} tracks`);
-          return tracks;
-        }),
-        catchError(error => {
-          console.error('Error buscando tracks:', error);
-          return of([]); // Retornar array vacío en caso de error
-        })
-      );
+    // Convertir la promesa en Observable
+    return new Observable(observer => {
+      this.getHeaders().then(headers => {
+        this.http.get<any>(url, { headers })
+          .pipe(
+            map(response => {
+              const tracks = this.mapSpotifyTracksToTracks(response.tracks.items);
+              console.log(`Encontrados ${tracks.length} tracks`);
+              return tracks;
+            }),
+            catchError(error => {
+              console.error('Error buscando tracks:', error);
+              return of([]);
+            })
+          )
+          .subscribe({
+            next: (tracks) => {
+              observer.next(tracks);
+              observer.complete();
+            },
+            error: (err) => {
+              observer.error(err);
+            }
+          });
+      }).catch(err => {
+        console.error('Error obteniendo headers:', err);
+        observer.next([]);
+        observer.complete();
+      });
+    });
   }
 
   /**
@@ -103,42 +142,87 @@ export class SpotifyAdapter implements MusicRepositoryPort {
   searchAll(query: string): Observable<SearchResult> {
     const url = `${environment.spotify.apiUrl}/search?q=${encodeURIComponent(query)}&type=track,album,artist&limit=10`;
     
-    return this.http.get<any>(url, { headers: this.getHeaders() })
-      .pipe(
-        map(response => ({
-          tracks: this.mapSpotifyTracksToTracks(response.tracks?.items || []),
-          albums: this.mapSpotifyAlbumsToAlbums(response.albums?.items || []),
-          artists: this.mapSpotifyArtistsToArtists(response.artists?.items || [])
-        })),
-        catchError(error => {
-          console.error('Error en searchAll:', error);
-          return of({ tracks: [], albums: [], artists: [] });
-        })
-      );
+    return new Observable(observer => {
+      this.getHeaders().then(headers => {
+        this.http.get<any>(url, { headers })
+          .pipe(
+            map(response => ({
+              tracks: this.mapSpotifyTracksToTracks(response.tracks?.items || []),
+              albums: this.mapSpotifyAlbumsToAlbums(response.albums?.items || []),
+              artists: this.mapSpotifyArtistsToArtists(response.artists?.items || [])
+            })),
+            catchError(error => {
+              console.error('Error en searchAll:', error);
+              return of({ tracks: [], albums: [], artists: [] });
+            })
+          )
+          .subscribe({
+            next: (results) => {
+              observer.next(results);
+              observer.complete();
+            },
+            error: (err) => {
+              observer.error(err);
+            }
+          });
+      }).catch(err => {
+        console.error('Error obteniendo headers:', err);
+        observer.next({ tracks: [], albums: [], artists: [] });
+        observer.complete();
+      });
+    });
   }
 
   getAlbum(id: string): Observable<Album> {
     const url = `${environment.spotify.apiUrl}/albums/${id}`;
-    return this.http.get<any>(url, { headers: this.getHeaders() })
-      .pipe(
-        map(response => this.mapSpotifyAlbumToAlbum(response)),
-        catchError(error => {
-          console.error('Error obteniendo album:', error);
-          return of({} as Album);
-        })
-      );
+    
+    return new Observable(observer => {
+      this.getHeaders().then(headers => {
+        this.http.get<any>(url, { headers })
+          .pipe(
+            map(response => this.mapSpotifyAlbumToAlbum(response)),
+            catchError(error => {
+              console.error('Error obteniendo album:', error);
+              return of({} as Album);
+            })
+          )
+          .subscribe({
+            next: (album) => {
+              observer.next(album);
+              observer.complete();
+            },
+            error: (err) => {
+              observer.error(err);
+            }
+          });
+      });
+    });
   }
 
   getArtist(id: string): Observable<Artist> {
     const url = `${environment.spotify.apiUrl}/artists/${id}`;
-    return this.http.get<any>(url, { headers: this.getHeaders() })
-      .pipe(
-        map(response => this.mapSpotifyArtistToArtist(response)),
-        catchError(error => {
-          console.error('Error obteniendo artista:', error);
-          return of({} as Artist);
-        })
-      );
+    
+    return new Observable(observer => {
+      this.getHeaders().then(headers => {
+        this.http.get<any>(url, { headers })
+          .pipe(
+            map(response => this.mapSpotifyArtistToArtist(response)),
+            catchError(error => {
+              console.error('Error obteniendo artista:', error);
+              return of({} as Artist);
+            })
+          )
+          .subscribe({
+            next: (artist) => {
+              observer.next(artist);
+              observer.complete();
+            },
+            error: (err) => {
+              observer.error(err);
+            }
+          });
+      });
+    });
   }
 
   /**
@@ -148,18 +232,36 @@ export class SpotifyAdapter implements MusicRepositoryPort {
     const url = `${environment.spotify.apiUrl}/browse/featured-playlists?limit=10`;
     console.log('Obteniendo playlists destacadas...');
     
-    return this.http.get<any>(url, { headers: this.getHeaders() })
-      .pipe(
-        map(response => {
-          const playlists = this.mapSpotifyPlaylistsToAlbums(response.playlists.items);
-          console.log(`${playlists.length} playlists obtenidas`);
-          return playlists;
-        }),
-        catchError(error => {
-          console.error('Error obteniendo playlists:', error);
-          return of([]);
-        })
-      );
+    return new Observable(observer => {
+      this.getHeaders().then(headers => {
+        console.log('Headers listos, haciendo petición...');
+        this.http.get<any>(url, { headers })
+          .pipe(
+            map(response => {
+              const playlists = this.mapSpotifyPlaylistsToAlbums(response.playlists.items);
+              console.log(`${playlists.length} playlists obtenidas`);
+              return playlists;
+            }),
+            catchError(error => {
+              console.error('Error obteniendo playlists:', error);
+              return of([]);
+            })
+          )
+          .subscribe({
+            next: (playlists) => {
+              observer.next(playlists);
+              observer.complete();
+            },
+            error: (err) => {
+              observer.error(err);
+            }
+          });
+      }).catch(err => {
+        console.error('Error obteniendo headers para playlists:', err);
+        observer.next([]);
+        observer.complete();
+      });
+    });
   }
 
   /**
@@ -169,18 +271,36 @@ export class SpotifyAdapter implements MusicRepositoryPort {
     const url = `${environment.spotify.apiUrl}/browse/new-releases?limit=10`;
     console.log('Obteniendo nuevos lanzamientos...');
     
-    return this.http.get<any>(url, { headers: this.getHeaders() })
-      .pipe(
-        map(response => {
-          const releases = this.mapSpotifyAlbumsToAlbums(response.albums.items);
-          console.log(`${releases.length} nuevos lanzamientos obtenidos`);
-          return releases;
-        }),
-        catchError(error => {
-          console.error('Error obteniendo nuevos lanzamientos:', error);
-          return of([]);
-        })
-      );
+    return new Observable(observer => {
+      this.getHeaders().then(headers => {
+        console.log('Headers listos para new releases...');
+        this.http.get<any>(url, { headers })
+          .pipe(
+            map(response => {
+              const releases = this.mapSpotifyAlbumsToAlbums(response.albums.items);
+              console.log(`${releases.length} nuevos lanzamientos obtenidos`);
+              return releases;
+            }),
+            catchError(error => {
+              console.error('Error obteniendo nuevos lanzamientos:', error);
+              return of([]);
+            })
+          )
+          .subscribe({
+            next: (releases) => {
+              observer.next(releases);
+              observer.complete();
+            },
+            error: (err) => {
+              observer.error(err);
+            }
+          });
+      }).catch(err => {
+        console.error('Error obteniendo headers para new releases:', err);
+        observer.next([]);
+        observer.complete();
+      });
+    });
   }
 
   // ============================================
