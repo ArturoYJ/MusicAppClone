@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';  
-import { MusicService } from '../../../core/application/music.service'; 
-import { Track, Album, Artist, SearchResult } from '../../../core/domain/models'; 
+import { MusicService } from '../../services/music.service'; 
+import { Track, Album, Artist, SearchResult } from '../../domain/models'; 
 
 @Component({
   selector: 'app-home',

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, map, catchError, tap, delay, switchMap } from 'rxjs';
-import { environment } from '../../../../environments/environment';
-import { MusicRepositoryPort } from '../../../core/domain/ports/music-repository.port';
-import { Track, Album, Artist, SearchResult } from '../../../core/domain/models';
+import { environment } from '../../environments/environment';
+import { MusicRepositoryPort } from '../domain/ports/music-repository.port';
+import { Track, Album, Artist, SearchResult } from '../domain/models';
 
 @Injectable({
   providedIn: 'root'
@@ -152,6 +152,7 @@ export class SpotifyAdapter implements MusicRepositoryPort {
   /**
    * Búsqueda completa que incluye: tracks, albums y artists
    */
+  
   searchAll(query: string): Observable<SearchResult> {
     const url = `${environment.spotify.apiUrl}/search?q=${encodeURIComponent(query)}&type=track,album,artist&limit=10`;
     

@@ -2,8 +2,8 @@ import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { routes } from './app.routes';
-import { MusicRepositoryPort } from './core/domain/ports/music-repository.port';
-import { SpotifyAdapter } from './infrastructure/adapters/spotify/spotify.adapter';
+import { MusicRepositoryPort } from './domain/ports/music-repository.port';
+import { SpotifyAdapter } from './services/spotify.adapter';
 
 export const appConfig: ApplicationConfig = {
   providers: [

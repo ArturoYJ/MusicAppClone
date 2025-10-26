@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of, tap } from 'rxjs';
 import { MusicRepositoryPort } from '../domain/ports/music-repository.port';
 import { Track, Album, Artist, SearchResult } from '../domain/models';
-import { SpotifyAdapter } from '../../infrastructure/adapters/spotify/spotify.adapter';
+import { SpotifyAdapter } from './spotify.adapter';
 
 @Injectable({
   providedIn: 'root'
