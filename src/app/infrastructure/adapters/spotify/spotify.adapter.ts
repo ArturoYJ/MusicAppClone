@@ -11,7 +11,8 @@ import { Track, Album, Artist, SearchResult } from '../../../core/domain/models'
 export class SpotifyAdapter implements MusicRepositoryPort {
   private token: string = '';
   private tokenExpiry: number = 0;
-  private tokenPromise: Promise<string> | null = null; // Para manejar la promesa del token
+  private tokenPromise: Promise<string> | null = null;
+  private tokenReady: boolean = false; // Indica si el token ya está disponible
   
   constructor(private http: HttpClient) {
     console.log('SpotifyAdapter inicializado');
@@ -47,6 +48,7 @@ export class SpotifyAdapter implements MusicRepositoryPort {
             this.token = response.access_token;
             // El token expira en 3600 segundos (1 hora)
             this.tokenExpiry = Date.now() + (response.expires_in * 1000);
+            this.tokenReady = true; // Marcar token como listo
             console.log('✓ Token obtenido correctamente');
             console.log('Token:', this.token.substring(0, 20) + '...');
             console.log('Expira en:', response.expires_in, 'segundos');
@@ -94,6 +96,17 @@ export class SpotifyAdapter implements MusicRepositoryPort {
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
+  }
+
+  /**
+   * Retorna una promesa que se resuelve cuando el token está listo
+   * Este método es público para que otros servicios puedan esperar
+   */
+  public waitForToken(): Promise<void> {
+    if (this.tokenReady) {
+      return Promise.resolve();
+    }
+    return this.tokenPromise!.then(() => {});
   }
 
   /**
@@ -226,47 +239,9 @@ export class SpotifyAdapter implements MusicRepositoryPort {
   }
 
   /**
-   * Obtiene las playlists destacadas de Spotify
-   */
-  getFeaturedPlaylists(): Observable<Album[]> {
-    const url = `${environment.spotify.apiUrl}/browse/featured-playlists?limit=10`;
-    console.log('Obteniendo playlists destacadas...');
-    
-    return new Observable(observer => {
-      this.getHeaders().then(headers => {
-        console.log('Headers listos, haciendo petición...');
-        this.http.get<any>(url, { headers })
-          .pipe(
-            map(response => {
-              const playlists = this.mapSpotifyPlaylistsToAlbums(response.playlists.items);
-              console.log(`${playlists.length} playlists obtenidas`);
-              return playlists;
-            }),
-            catchError(error => {
-              console.error('Error obteniendo playlists:', error);
-              return of([]);
-            })
-          )
-          .subscribe({
-            next: (playlists) => {
-              observer.next(playlists);
-              observer.complete();
-            },
-            error: (err) => {
-              observer.error(err);
-            }
-          });
-      }).catch(err => {
-        console.error('Error obteniendo headers para playlists:', err);
-        observer.next([]);
-        observer.complete();
-      });
-    });
-  }
-
-  /**
    * Obtiene los nuevos lanzamientos de música
    */
+
   getNewReleases(): Observable<Album[]> {
     const url = `${environment.spotify.apiUrl}/browse/new-releases?limit=10`;
     console.log('Obteniendo nuevos lanzamientos...');
@@ -375,20 +350,5 @@ export class SpotifyAdapter implements MusicRepositoryPort {
       genres: item.genres || [],
       followers: item.followers?.total
     };
-  }
-
-  /**
-   * Convierte playlists de Spotify a formato Album
-   * NOTA: Reutilizo el modelo Album para las playlists para no crear otro componente
-   */
-  private mapSpotifyPlaylistsToAlbums(items: any[]): Album[] {
-    return items.map(item => ({
-      id: item.id,
-      name: item.name,
-      artist: item.owner?.display_name || 'Spotify',
-      coverImage: item.images[0]?.url || '',
-      releaseDate: '', // Las playlists no tienen fecha de lanzamiento
-      totalTracks: item.tracks?.total || 0
-    }));
   }
 }

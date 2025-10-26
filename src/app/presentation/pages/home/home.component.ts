@@ -15,48 +15,49 @@ export class HomeComponent implements OnInit {
 
   searchQuery = ''; // Query de búsqueda
   searchResults: SearchResult | null = null;
-  featuredPlaylists: Album[] = [];
   newReleases: Album[] = [];
   selectedTrack: Track | null = null;
   isSearching = false;
+  isLoading = true; // Indicador de carga inicial
 
   constructor(private musicService: MusicService) {
     console.log('HomeComponent inicializado'); 
   }
 
   ngOnInit() {
-    this.loadInitialData();
+    console.log('Esperando que Spotify esté listo...');
+    
+    // Usar waitForSpotify con then/catch en lugar de async/await
+    this.musicService.waitForSpotify()
+      .then(() => {
+        console.log('Token listo, cargando datos...');
+        this.loadInitialData();
+      })
+      .catch(err => {
+        console.error('Error esperando token:', err);
+        this.isLoading = false;
+      });
   }
 
   /**
    * Carga los datos iniciales: playlists y nuevos lanzamientos
    */
-  loadInitialData() {
-    console.log('Cargando datos iniciales...');
-    
-    // Cargar playlists destacadas
-    this.musicService.getFeaturedPlaylists().subscribe({
-      next: (data) => {
-        this.featuredPlaylists = data;
-        console.log('Playlists cargadas:', data.length);
-      },
-      error: (err) => {
-        console.error('Error cargando playlists:', err);
+    loadInitialData() {
+        console.log('Cargando datos iniciales...');
+        
+        // Cargar nuevos lanzamientos
+        this.musicService.getNewReleases().subscribe({
+          next: (data) => {
+            this.newReleases = data;
+            this.isLoading = false; // Marcar como cargado cuando lleguen los lanzamientos
+            console.log('Nuevos lanzamientos cargados:', data.length);
+          },
+          error: (err) => {
+            console.error('Error cargando lanzamientos:', err);
+            this.isLoading = false;
+          }
+        });
       }
-    });
-    
-    // Cargar nuevos lanzamientos
-    this.musicService.getNewReleases().subscribe({
-      next: (data) => {
-        this.newReleases = data;
-        console.log('Nuevos lanzamientos cargados:', data.length);
-      },
-      error: (err) => {
-        console.error('Error cargando lanzamientos:', err);
-      }
-    });
-  }
-
   /**
    * Maneja la búsqueda cuando el usuario presiona Enter
    */

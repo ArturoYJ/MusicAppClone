@@ -118,21 +118,14 @@
       </section>
     </div>
 
-    <!-- Home Content -->
-    <div *ngIf="!searchResults" class="home-content">
-      <!-- Featured Playlists -->
-      <section class="content-section">
-        <h2>Destacados</h2>
-        <div class="album-grid">
-          <div *ngFor="let playlist of featuredPlaylists" class="album-card">
-            <img [src]="playlist.coverImage" [alt]="playlist.name" class="album-cover" />
-            <div class="album-info">
-              <h3>{{ playlist.name }}</h3>
-              <p>{{ playlist.artist }}</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <!-- Loading inicial -->
+      <div *ngIf="isLoading && !searchResults" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando contenido...</p>
+      </div>
+
+      <!-- Home Content -->
+      <div *ngIf="!searchResults && !isLoading" class="home-content">   
 
       <!-- New Releases -->
       <section class="content-section">

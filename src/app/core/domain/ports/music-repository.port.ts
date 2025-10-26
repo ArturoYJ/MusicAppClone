@@ -6,6 +6,5 @@ export abstract class MusicRepositoryPort {
   abstract searchAll(query: string): Observable<SearchResult>;
   abstract getAlbum(id: string): Observable<Album>;
   abstract getArtist(id: string): Observable<Artist>;
-  abstract getFeaturedPlaylists(): Observable<Album[]>;
   abstract getNewReleases(): Observable<Album[]>;
 }

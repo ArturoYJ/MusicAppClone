@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of, tap } from 'rxjs';
 import { MusicRepositoryPort } from '../domain/ports/music-repository.port';
 import { Track, Album, Artist, SearchResult } from '../domain/models';
+import { SpotifyAdapter } from '../../infrastructure/adapters/spotify/spotify.adapter';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,17 @@ export class MusicService {
   
   constructor(private musicRepository: MusicRepositoryPort) {
     console.log('MusicService inicializado');
+  }
+
+  /**
+   * Espera a que el adaptador de Spotify esté listo
+   * NOTA: Necesario para evitar errores 400 al inicio
+   */
+  async waitForSpotify(): Promise<void> {
+    if (this.musicRepository instanceof SpotifyAdapter) {
+      await this.musicRepository.waitForToken();
+      console.log('✓ Spotify listo para usar');
+    }
   }
 
   /**
@@ -64,17 +76,6 @@ export class MusicService {
 
   getArtist(id: string): Observable<Artist> {
     return this.musicRepository.getArtist(id);
-  }
-
-  /**
-   * Obtiene las playlists destacadas de Spotify
-   * TODO: Agregar filtro por género o país
-   */
-  getFeaturedPlaylists(): Observable<Album[]> {
-    console.log('Cargando playlists destacadas...');
-    return this.musicRepository.getFeaturedPlaylists().pipe(
-      tap(playlists => console.log(`${playlists.length} playlists cargadas`))
-    );
   }
 
   /**
