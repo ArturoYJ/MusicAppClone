@@ -113,7 +113,7 @@ export class SpotifyAdapter implements MusicRepositoryPort {
    * Busca canciones por texto
    */
   searchTracks(query: string): Observable<Track[]> {
-    const url = `${environment.spotify.apiUrl}/search?q=${encodeURIComponent(query)}&type=track&limit=20`;
+    const url = `${environment.spotify.apiUrl}/search?q=${encodeURIComponent(query)}&type=track&limit=2q0`;
     
     console.log('Buscando tracks en Spotify API:', query);
     
@@ -244,7 +244,7 @@ export class SpotifyAdapter implements MusicRepositoryPort {
    */
 
   getNewReleases(): Observable<Album[]> {
-    const url = `${environment.spotify.apiUrl}/browse/new-releases?limit=10`;
+    const url = `${environment.spotify.apiUrl}/browse/new-releases?limit=50`;
     console.log('Obteniendo nuevos lanzamientos...');
     
     return new Observable(observer => {
