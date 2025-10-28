@@ -1,0 +1,160 @@
+// Player Bar
+.player-bar {
+  grid-column: 2;
+  grid-row: 2;
+  background: rgba(20, 20, 20, 0.98);
+  backdrop-filter: blur(40px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  padding: 0 30px;
+  gap: 20px;
+}
+
+.player-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .player-cover {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .player-track-info {
+    min-width: 0;
+
+    .player-track-name {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .player-artist {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+.player-center {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+
+  .control-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      opacity: 0.7;
+    }
+
+    &.control-btn-play {
+      background: #fa2d48;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        opacity: 1;
+        background: #ff3856;
+      }
+    }
+  }
+}
+
+.player-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .time {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    cursor: pointer;
+
+    .progress-fill {
+      height: 100%;
+      background: #fa2d48;
+      transition: width 0.1s linear;
+    }
+
+    &:hover .progress-fill {
+      background: #ff3856;
+    }
+  }
+}
+
+.player-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  .control-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+
+    svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+}
