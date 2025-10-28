@@ -1,0 +1,62 @@
+// ==================================
+// Mixins Reutilizables
+// ==================================
+
+// Scrollbar personalizado
+@mixin custom-scrollbar($width: 8px) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+// Truncate text (ellipsis)
+@mixin truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Glassmorphism effect
+@mixin glass($blur: 20px) {
+  backdrop-filter: blur($blur);
+}
+
+// Flexbox center
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Hover lift effect
+@mixin hover-lift($distance: -4px) {
+  transition: transform $transition-fast;
+  
+  &:hover {
+    transform: translateY($distance);
+  }
+}
+
+// Card shadow hover
+@mixin card-shadow-hover {
+  box-shadow: $shadow-md;
+  transition: box-shadow $transition-fast;
+  
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
+}

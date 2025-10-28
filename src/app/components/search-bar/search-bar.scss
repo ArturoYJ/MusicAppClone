@@ -1,12 +1,22 @@
-// Search Bar
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+// ==================================
+// Search Bar Component
+// ==================================
+
 .search-bar {
-  margin-bottom: 30px;
+  margin-bottom: $spacing-3xl;
   position: sticky;
   top: 0;
-  z-index: 10;
-  background: linear-gradient(180deg, #1a1a1a 0%, rgba(26, 26, 26, 0.95) 100%);
-  padding-bottom: 20px;
+  z-index: $z-search;
+  background: linear-gradient(180deg, $bg-dark-secondary 0%, rgba($bg-dark-secondary, 0.95) 100%);
+  padding-bottom: $spacing-xl;
 }
+
+// ==================================
+// Search Input Wrapper
+// ==================================
 
 .search-input-wrapper {
   position: relative;
@@ -14,49 +24,51 @@
 
   .search-icon {
     position: absolute;
-    left: 16px;
+    left: $spacing-lg;
     top: 50%;
     transform: translateY(-50%);
     width: 18px;
     height: 18px;
     stroke-width: 2.5;
-    color: rgba(255, 255, 255, 0.5);
+    color: $text-muted;
+    pointer-events: none;
   }
 
   .search-input {
     width: 100%;
-    padding: 14px 48px 14px 48px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    color: #fff;
-    font-size: 15px;
+    padding: 14px 48px;
+    background: $bg-search;
+    border: 1px solid $border-medium;
+    border-radius: $radius-lg;
+    color: $text-primary;
+    font-size: $font-base;
     outline: none;
-    transition: all 0.2s ease;
+    transition: all $transition-fast;
 
     &::placeholder {
-      color: rgba(255, 255, 255, 0.5);
+      color: $text-muted;
     }
 
     &:focus {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: #fa2d48;
+      background: $bg-search-focus;
+      border-color: $color-primary;
     }
   }
 
   .clear-btn {
     position: absolute;
-    right: 12px;
+    right: $spacing-md;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.6);
+    color: $text-secondary;
     cursor: pointer;
-    padding: 4px;
+    padding: $spacing-xs;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: color $transition-fast;
 
     svg {
       width: 18px;
@@ -65,24 +77,28 @@
     }
 
     &:hover {
-      color: #fff;
+      color: $text-primary;
     }
   }
 }
 
-// Back Button
+// ==================================
+// Back Button (para resultados)
+// ==================================
+
 .back-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: $spacing-sm;
   background: transparent;
   border: none;
-  color: #fa2d48;
-  font-size: 16px;
+  color: $color-primary;
+  font-size: $font-lg;
   font-weight: 500;
   cursor: pointer;
-  margin-bottom: 20px;
-  padding: 8px 0;
+  margin-bottom: $spacing-xl;
+  padding: $spacing-sm 0;
+  transition: opacity $transition-fast;
 
   svg {
     width: 20px;
@@ -92,5 +108,19 @@
 
   &:hover {
     opacity: 0.8;
+  }
+}
+
+// ==================================
+// Responsive
+// ==================================
+
+@media (max-width: 768px) {
+  .search-input-wrapper {
+    max-width: 100%;
+  }
+
+  .search-bar {
+    margin-bottom: $spacing-xl;
   }
 }

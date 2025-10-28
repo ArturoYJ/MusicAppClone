@@ -1,74 +1,91 @@
-// Player Bar
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+// ==================================
+// Player Bar Component
+// ==================================
+
 .player-bar {
   grid-column: 2;
   grid-row: 2;
-  background: rgba(20, 20, 20, 0.98);
-  backdrop-filter: blur(40px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: $bg-player;
+  @include glass(40px);
+  border-top: 1px solid $border-light;
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
   align-items: center;
-  padding: 0 30px;
-  gap: 20px;
+  padding: 0 $spacing-3xl;
+  gap: $spacing-xl;
+  z-index: $z-player;
 }
+
+// ==================================
+// Player Left (Track Info)
+// ==================================
 
 .player-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: $spacing-md;
 
   .player-cover {
     width: 60px;
     height: 60px;
-    border-radius: 8px;
+    border-radius: $radius-md;
     object-fit: cover;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: $shadow-sm;
   }
 
   .player-track-info {
     min-width: 0;
+    flex: 1;
 
     .player-track-name {
-      font-size: 14px;
+      font-size: $font-md;
       font-weight: 500;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      margin-bottom: $spacing-xs;
+      @include truncate;
     }
 
     .player-artist {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: $font-xs;
+      color: $text-secondary;
+      @include truncate;
     }
   }
 }
 
+// ==================================
+// Player Center (Controls)
+// ==================================
+
 .player-center {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: $spacing-sm;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
 }
 
 .player-controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: $spacing-xl;
 
   .control-btn {
     background: transparent;
     border: none;
-    color: #fff;
+    color: $text-primary;
     cursor: pointer;
-    padding: 8px;
+    padding: $spacing-sm;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s ease;
+    transition: opacity $transition-fast;
 
     svg {
       width: 18px;
@@ -80,8 +97,8 @@
     }
 
     &.control-btn-play {
-      background: #fa2d48;
-      border-radius: 50%;
+      background: $color-primary;
+      border-radius: $radius-full;
       width: 40px;
       height: 40px;
       padding: 0;
@@ -89,24 +106,30 @@
       svg {
         width: 20px;
         height: 20px;
+        margin-left: 2px; // Ajuste visual para centrar el triángulo
       }
 
       &:hover {
         opacity: 1;
-        background: #ff3856;
+        background: $color-primary-hover;
       }
     }
   }
 }
 
+// ==================================
+// Player Progress
+// ==================================
+
 .player-progress {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: $spacing-md;
+  width: 100%;
 
   .time {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: $font-xs;
+    color: $text-secondary;
     min-width: 40px;
     text-align: center;
   }
@@ -114,22 +137,27 @@
   .progress-bar {
     flex: 1;
     height: 4px;
-    background: rgba(255, 255, 255, 0.2);
+    background: $bg-overlay;
     border-radius: 2px;
     overflow: hidden;
     cursor: pointer;
+    position: relative;
 
     .progress-fill {
       height: 100%;
-      background: #fa2d48;
+      background: $color-primary;
       transition: width 0.1s linear;
     }
 
     &:hover .progress-fill {
-      background: #ff3856;
+      background: $color-primary-hover;
     }
   }
 }
+
+// ==================================
+// Player Right (Volume)
+// ==================================
 
 .player-right {
   display: flex;
@@ -139,13 +167,13 @@
   .control-btn {
     background: transparent;
     border: none;
-    color: #fff;
+    color: $text-primary;
     cursor: pointer;
-    padding: 8px;
+    padding: $spacing-sm;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s ease;
+    transition: opacity $transition-fast;
 
     svg {
       width: 20px;
@@ -155,6 +183,34 @@
 
     &:hover {
       opacity: 0.7;
+    }
+  }
+}
+
+// ==================================
+// Responsive
+// ==================================
+
+@media (max-width: 768px) {
+  .player-bar {
+    grid-column: 1;
+    grid-template-columns: 1fr;
+    padding: $spacing-md $spacing-xl;
+    gap: $spacing-md;
+  }
+
+  .player-center {
+    order: -1;
+  }
+
+  .player-right {
+    display: none;
+  }
+
+  .player-left {
+    .player-cover {
+      width: 50px;
+      height: 50px;
     }
   }
 }

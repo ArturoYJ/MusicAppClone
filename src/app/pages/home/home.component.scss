@@ -1,137 +1,176 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+// ==================================
+// Layout Principal
+// ==================================
+
 .apple-music-container {
   display: grid;
-  grid-template-columns: 250px 1fr;
-  grid-template-rows: 1fr 90px;
+  grid-template-columns: $sidebar-width 1fr;
+  grid-template-rows: 1fr $player-height;
   height: 100vh;
-  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
-  color: #fff;
+  background: linear-gradient(180deg, $bg-dark-secondary 0%, $bg-dark-primary 100%);
+  color: $text-primary;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-// Main Content
+// ==================================
+// Área de Contenido Principal
+// ==================================
+
 .main-content {
   grid-column: 2;
   grid-row: 1;
-  padding: 30px 40px;
+  padding: $spacing-3xl $spacing-4xl;
   overflow-y: auto;
   position: relative;
 
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-  }
+  @include custom-scrollbar();
 }
 
-// Content Sections
+// ==================================
+// Secciones de Contenido
+// ==================================
+
 .content-section,
 .results-section {
-  margin-bottom: 50px;
+  margin-bottom: $spacing-5xl;
 
   h2 {
-    font-size: 28px;
+    font-size: $font-2xl;
     font-weight: 700;
-    margin: 0 0 20px 0;
+    margin: 0 0 $spacing-xl 0;
   }
 }
 
-// Album Grid
+// ==================================
+// Grids de Albums y Artistas
+// ==================================
+
 .album-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 24px;
+  gap: $spacing-2xl;
 }
+
+.artist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: $spacing-2xl;
+}
+
+// ==================================
+// Album Card
+// ==================================
 
 .album-card {
   cursor: pointer;
-  transition: transform 0.2s ease;
+  @include hover-lift();
 
-  &:hover {
-    transform: translateY(-4px);
-
-    .album-cover {
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-    }
+  &:hover .album-cover {
+    box-shadow: $shadow-lg;
   }
 
   .album-cover {
     width: 100%;
     aspect-ratio: 1;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: box-shadow 0.2s ease;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-md;
+    transition: box-shadow $transition-fast;
     object-fit: cover;
   }
 
   .album-info {
-    margin-top: 12px;
+    margin-top: $spacing-md;
 
     h3 {
-      font-size: 15px;
+      font-size: $font-base;
       font-weight: 600;
-      margin: 0 0 4px 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      margin: 0 0 $spacing-xs 0;
+      @include truncate;
     }
 
     p {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.6);
+      font-size: $font-sm;
+      color: $text-secondary;
       margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      @include truncate;
     }
   }
 }
 
-// Track List
+// ==================================
+// Artist Card
+// ==================================
+
+.artist-card {
+  text-align: center;
+  cursor: pointer;
+  @include hover-lift();
+
+  &:hover .artist-image {
+    box-shadow: $shadow-lg;
+  }
+
+  .artist-image {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: $radius-full;
+    object-fit: cover;
+    box-shadow: $shadow-md;
+    transition: box-shadow $transition-fast;
+  }
+
+  h3 {
+    margin-top: $spacing-md;
+    font-size: $font-base;
+    font-weight: 600;
+  }
+}
+
+// ==================================
+// Lista de Tracks
+// ==================================
+
 .track-list {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  background: $bg-overlay;
+  border-radius: $radius-lg;
   overflow: hidden;
 }
 
 .track-item {
   display: grid;
   grid-template-columns: 40px 60px 1fr 2fr 80px;
-  gap: 16px;
+  gap: $spacing-lg;
   align-items: center;
-  padding: 12px 16px;
+  padding: $spacing-md $spacing-lg;
   cursor: pointer;
-  transition: background 0.2s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background $transition-fast;
+  border-bottom: 1px solid $bg-overlay;
 
   &:last-child {
     border-bottom: none;
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: $bg-overlay-hover;
   }
 
   &.selected {
-    background: rgba(250, 45, 72, 0.15);
+    background: rgba($color-primary, 0.15);
   }
 
   .track-number {
     text-align: center;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 14px;
+    color: $text-muted;
+    font-size: $font-md;
   }
 
   .track-cover {
     width: 50px;
     height: 50px;
-    border-radius: 6px;
+    border-radius: $radius-sm;
     object-fit: cover;
   }
 
@@ -139,74 +178,35 @@
     min-width: 0;
 
     .track-name {
-      font-size: 15px;
+      font-size: $font-base;
       font-weight: 500;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      margin-bottom: $spacing-xs;
+      @include truncate;
     }
 
     .track-artist {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.6);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: $font-sm;
+      color: $text-secondary;
+      @include truncate;
     }
   }
 
   .track-album {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: $font-md;
+    color: $text-secondary;
+    @include truncate;
   }
 
   .track-duration {
     text-align: right;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.5);
+    font-size: $font-md;
+    color: $text-muted;
   }
 }
 
-// Artist Grid
-.artist-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 24px;
-}
-
-.artist-card {
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-
-    .artist-image {
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-    }
-  }
-
-  .artist-image {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: box-shadow 0.2s ease;
-  }
-
-  h3 {
-    margin-top: 12px;
-    font-size: 15px;
-    font-weight: 600;
-  }
-}
-
+// ==================================
+// Loading State
+// ==================================
 
 .loading {
   position: absolute;
@@ -218,32 +218,37 @@
   .spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: #fa2d48;
-    border-radius: 50%;
+    border: 3px solid $bg-overlay;
+    border-top-color: $color-primary;
+    border-radius: $radius-full;
     animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
+    margin: 0 auto $spacing-lg;
   }
 
   p {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 14px;
+    color: $text-secondary;
+    font-size: $font-md;
   }
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to { 
+    transform: rotate(360deg); 
+  }
 }
 
-// Responsive
+// ==================================
+// Responsive Design
+// ==================================
+
 @media (max-width: 1024px) {
   .apple-music-container {
-    grid-template-columns: 200px 1fr;
+    grid-template-columns: $sidebar-width-md 1fr;
   }
 
   .track-item {
     grid-template-columns: 40px 50px 1fr 1fr 70px;
-    gap: 12px;
+    gap: $spacing-md;
   }
 }
 
@@ -252,25 +257,20 @@
     grid-template-columns: 1fr;
   }
 
-  .sidebar {
-    display: none;
+  .main-content {
+    padding: $spacing-xl;
   }
 
   .album-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 16px;
+    gap: $spacing-lg;
   }
 
-  .player-bar {
-    grid-column: 1;
-    grid-template-columns: 1fr;
-    padding: 12px 20px;
+  .track-item {
+    grid-template-columns: 40px 50px 1fr 60px;
+    
+    .track-album {
+      display: none;
+    }
   }
-
-  .player-right {
-    display: none;
-  }
-}bar {
-    width: 6px;
-  }
-
+}
