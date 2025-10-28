@@ -45,6 +45,36 @@
 }
 
 // ==================================
+// Back Button (Resultados de búsqueda)
+// ==================================
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  background: transparent;
+  border: none;
+  color: $color-primary;
+  font-size: $font-lg;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: $spacing-xl;
+  padding: $spacing-sm 0;
+  transition: opacity $transition-fast;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.5;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+// ==================================
 // Grids de Albums y Artistas
 // ==================================
 
@@ -271,6 +301,15 @@
     
     .track-album {
       display: none;
+    }
+  }
+
+  .back-btn {
+    font-size: $font-md;
+    
+    svg {
+      width: 18px;
+      height: 18px;
     }
   }
 }

@@ -12,10 +12,10 @@
   @include glass(40px);
   border-top: 1px solid $border-light;
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-columns: minmax(200px, 1fr) minmax(400px, 2.5fr) minmax(200px, 1fr);
   align-items: center;
   padding: 0 $spacing-3xl;
-  gap: $spacing-xl;
+  gap: $spacing-2xl;
   z-index: $z-player;
 }
 
@@ -27,6 +27,7 @@
   display: flex;
   align-items: center;
   gap: $spacing-md;
+  min-width: 0;
 
   .player-cover {
     width: 60px;
@@ -34,6 +35,7 @@
     border-radius: $radius-md;
     object-fit: cover;
     box-shadow: $shadow-sm;
+    flex-shrink: 0;
   }
 
   .player-track-info {
@@ -66,7 +68,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 700px;
+  max-width: 722px;
   margin: 0 auto;
 }
 
@@ -74,7 +76,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: $spacing-xl;
+  gap: $spacing-2xl;
 
   .control-btn {
     background: transparent;
@@ -85,33 +87,43 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity $transition-fast;
+    transition: all $transition-fast;
 
     svg {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
     }
 
     &:hover {
       opacity: 0.7;
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
     }
 
     &.control-btn-play {
       background: $color-primary;
       border-radius: $radius-full;
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       padding: 0;
 
       svg {
-        width: 20px;
-        height: 20px;
-        margin-left: 2px; // Ajuste visual para centrar el triángulo
+        width: 22px;
+        height: 22px;
+        margin-left: 2px;
       }
 
       &:hover {
         opacity: 1;
         background: $color-primary-hover;
+        transform: scale(1.05);
+      }
+
+      &:active {
+        transform: scale(0.98);
       }
     }
   }
@@ -130,15 +142,16 @@
   .time {
     font-size: $font-xs;
     color: $text-secondary;
-    min-width: 40px;
+    min-width: 42px;
     text-align: center;
+    font-variant-numeric: tabular-nums;
   }
 
   .progress-bar {
     flex: 1;
-    height: 4px;
-    background: $bg-overlay;
-    border-radius: 2px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
     overflow: hidden;
     cursor: pointer;
     position: relative;
@@ -147,10 +160,31 @@
       height: 100%;
       background: $color-primary;
       transition: width 0.1s linear;
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        background: $text-primary;
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity $transition-fast;
+      }
     }
 
-    &:hover .progress-fill {
-      background: $color-primary-hover;
+    &:hover {
+      .progress-fill {
+        background: $color-primary-hover;
+
+        &::after {
+          opacity: 1;
+        }
+      }
     }
   }
 }
@@ -163,6 +197,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: $spacing-sm;
 
   .control-btn {
     background: transparent;
@@ -176,8 +211,8 @@
     transition: opacity $transition-fast;
 
     svg {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       stroke-width: 2;
     }
 
@@ -190,6 +225,12 @@
 // ==================================
 // Responsive
 // ==================================
+
+@media (max-width: 1024px) {
+  .player-bar {
+    grid-template-columns: minmax(180px, 1fr) minmax(350px, 2fr) minmax(180px, 1fr);
+  }
+}
 
 @media (max-width: 768px) {
   .player-bar {
@@ -211,6 +252,25 @@
     .player-cover {
       width: 50px;
       height: 50px;
+    }
+  }
+
+  .player-controls {
+    gap: $spacing-lg;
+
+    .control-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .control-btn-play {
+      width: 38px;
+      height: 38px;
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
     }
   }
 }
