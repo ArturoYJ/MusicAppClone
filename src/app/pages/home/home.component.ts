@@ -1,10 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+// src/app/pages/home/home.component.ts
+
+import { Component, OnInit, Inject } from '@angular/core'; // <-- Añade Inject
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MusicService } from '../../services/music.service';
 import { Track, Album, Artist, SearchResult } from '../../domain/models';
+import { MusicRepositoryPort } from '../../domain/ports/music-repository.port'; // <-- Importa el Puerto
+import { SpotifyAdapter } from '../../services/spotify.adapter'; // <-- Importa el Adaptador
 
-// Importa los nuevos componentes
+// Importa los componentes
 import { SidebarComponent } from '../../components/sidebar/sidebar';
 import { SearchBarComponent } from '../../components/search-bar/search-bar';
 import { PlayerBarComponent } from '../../components/player-bar/player-bar';
@@ -13,40 +16,50 @@ import { PlayerBarComponent } from '../../components/player-bar/player-bar';
 @Component({
   selector: 'app-home',
   standalone: true,
-  // Añade los nuevos componentes a imports
   imports: [CommonModule, FormsModule, SidebarComponent, SearchBarComponent, PlayerBarComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit {
 
-  // searchQuery ya no está aquí
   searchResults: SearchResult | null = null;
   newReleases: Album[] = [];
   selectedTrack: Track | null = null;
   isSearching = false;
   isLoading = true;
 
-  constructor(private musicService: MusicService) {
+  // Inyecta el MusicRepositoryPort directamente
+  constructor(
+    @Inject(MusicRepositoryPort) private musicRepository: MusicRepositoryPort
+  ) {
     console.log('HomeComponent inicializado');
   }
 
   ngOnInit() {
     console.log('Esperando que Spotify esté listo...');
-    this.musicService.waitForSpotify()
-      .then(() => {
-        console.log('Token listo, cargando datos...');
-        this.loadInitialData();
-      })
-      .catch(err => {
-        console.error('Error esperando token:', err);
-        this.isLoading = false;
-      });
+    
+    // Comprueba si el repositorio es el adaptador de Spotify para llamar a waitForToken
+    // Esto es necesario para que el componente espere al token
+    if (this.musicRepository instanceof SpotifyAdapter) {
+      this.musicRepository.waitForToken()
+        .then(() => {
+          console.log('Token listo, cargando datos...');
+          this.loadInitialData();
+        })
+        .catch(err => {
+          console.error('Error esperando token:', err);
+          this.isLoading = false;
+        });
+    } else {
+      // Si no es Spotify (quizás para pruebas), carga datos directamente
+      this.loadInitialData();
+    }
   }
 
   loadInitialData() {
     console.log('Cargando datos iniciales...');
-    this.musicService.getNewReleases().subscribe({
+    this.isLoading = true; // Asegúrate de mostrar el loader
+    this.musicRepository.getNewReleases().subscribe({
       next: (data) => {
         this.newReleases = data;
         this.isLoading = false;
@@ -72,7 +85,8 @@ export class HomeComponent implements OnInit {
     this.isSearching = true;
     this.searchResults = null; // Limpia resultados anteriores
 
-    this.musicService.searchAll(query).subscribe({
+    // Usa el repositorio directamente
+    this.musicRepository.searchAll(query).subscribe({
       next: (results) => {
         this.searchResults = results;
         this.isSearching = false;
@@ -91,7 +105,6 @@ export class HomeComponent implements OnInit {
   handleClearSearch() {
     console.log('Limpiando búsqueda desde HomeComponent');
     this.searchResults = null;
-    // No necesitas limpiar searchQuery aquí porque está en SearchBarComponent
   }
 
   /**
@@ -101,6 +114,4 @@ export class HomeComponent implements OnInit {
     this.selectedTrack = track;
     console.log('Track seleccionado:', track.name, 'por', track.artist);
   }
-
-  // formatDuration ya no está aquí, se movió a PlayerBarComponent
 }

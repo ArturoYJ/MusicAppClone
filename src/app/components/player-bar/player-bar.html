@@ -1,4 +1,3 @@
-<!-- Player Bar -->
 <footer class="player-bar">
   <div class="player-left">
     <img 
@@ -14,21 +13,18 @@
 
   <div class="player-center">
     <div class="player-controls">
-      <!-- Botón Anterior (flecha izquierda) -->
       <button class="control-btn" title="Anterior">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
         </svg>
       </button>
 
-      <!-- Botón Play/Pause -->
       <button class="control-btn control-btn-play" title="Reproducir">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <polygon points="5 3 19 12 5 21 5 3"/>
         </svg>
       </button>
 
-      <!-- Botón Siguiente (flecha derecha) -->
       <button class="control-btn" title="Siguiente">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M16 18h2V6h-2zm-11.5-6L13 6v12z"/>
@@ -41,7 +37,7 @@
       <div class="progress-bar">
         <div class="progress-fill" style="width: 0%"></div>
       </div>
-      <span class="time">{{ selectedTrack ? formatDuration(selectedTrack.duration) : '0:00' }}</span>
+      <span class="time">{{ selectedTrack?.duration | formatDuration }}</span>
     </div>
   </div>
 
